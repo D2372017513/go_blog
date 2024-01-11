@@ -6,8 +6,9 @@ import (
 )
 
 func handFunc(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content_type", "text/html;charset=utf-8")
 	if r.URL.Path == "/" {
-		fmt.Fprint(w, "根目录")
+		fmt.Fprint(w, "新的根目录")
 	} else if r.URL.Path == "/about" {
 		fmt.Fprint(w, "about 目录")
 	} else {
