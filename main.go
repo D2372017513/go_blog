@@ -8,6 +8,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
@@ -81,6 +82,7 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		return
 	}
 
 	fmt.Fprint(w, "验证通过！</br>")
