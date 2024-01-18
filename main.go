@@ -2,13 +2,23 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
+	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gorilla/mux"
 )
 
 var router = mux.NewRouter()
+
+type ArticlesFormData struct {
+	Title, Body string
+	URL         *url.URL
+	// Errors      map[string]string
+	ShowErr string
+}
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Hello, 欢迎来到 goblog！</h1>")
@@ -36,18 +46,46 @@ func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
+	// Form：存储了 post、put 和 get 参数，在使用之前需要调用 ParseForm 方法。PostForm：存储了 post、put 参数，在使用之前需要调用 ParseForm 方法。
 	err := r.ParseForm()
 	if err != nil {
 		fmt.Printf("解析出错！")
 		return
 	}
 
-	title := r.PostForm.Get("title")
+	title, body := r.PostFormValue("title"), r.PostFormValue("body")
 
-	// Form：存储了 post、put 和 get 参数，在使用之前需要调用 ParseForm 方法。PostForm：存储了 post、put 参数，在使用之前需要调用 ParseForm 方法。
-	fmt.Printf("PostForm : %v\n", r.PostForm)
-	fmt.Printf("Form : %v \n", r.Form)
-	fmt.Printf("title : %v \n", title)
+	var showErr string = ""
+
+	if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(body) < 3 {
+		showErr = "标题或内容长度不能小于 3 字节"
+	} else if utf8.RuneCountInString(title) > 40 || utf8.RuneCountInString(body) > 40 {
+		showErr = "标题或内容长度不能大于 40 字节"
+	}
+
+	if len(showErr) != 0 {
+		storeURL, _ := router.Get("articles.store").URL()
+
+		data := ArticlesFormData{
+			Title:   title,
+			Body:    body,
+			URL:     storeURL,
+			ShowErr: showErr,
+		}
+		tmpl, err := template.ParseFiles("resources/views/articles/create.tmpl")
+		if err != nil {
+			panic(err)
+		}
+
+		err = tmpl.Execute(w, data)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	fmt.Fprint(w, "验证通过！</br>")
+	fmt.Fprintf(w, "title 长度 ：%d， 内容 ： %s</br>", utf8.RuneCountInString(title), title)
+	fmt.Fprintf(w, "body 长度 ：%d， 内容 ： %s</br>", utf8.RuneCountInString(body), body)
 }
 
 func forceHTMLMiddleware(next http.Handler) http.Handler {
@@ -69,24 +107,17 @@ func removeTrailingSlash(next http.Handler) http.Handler {
 }
 
 func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
-	html := `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>创建文章 —— 我的技术博客</title>
-</head>
-<body>
-    <form action="%s" method="post">
-        <p><input type="text" name="title"></p>
-        <p><textarea name="body" cols="30" rows="10"></textarea></p>
-        <p><button type="submit">提交</button></p>
-    </form>
-</body>
-</html>
-`
-	// 赋值给 %s
 	storeURL, _ := router.Get("articles.store").URL()
-	fmt.Fprintf(w, html, storeURL)
+	data := ArticlesFormData{URL: storeURL}
+	tmpl, err := template.ParseFiles("resources/views/articles/create.tmpl")
+	if err != nil {
+		panic(err)
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
