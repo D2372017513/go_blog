@@ -36,7 +36,18 @@ func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "创建新的文章")
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Printf("解析出错！")
+		return
+	}
+
+	title := r.PostForm.Get("title")
+
+	// Form：存储了 post、put 和 get 参数，在使用之前需要调用 ParseForm 方法。PostForm：存储了 post、put 参数，在使用之前需要调用 ParseForm 方法。
+	fmt.Printf("PostForm : %v\n", r.PostForm)
+	fmt.Printf("Form : %v \n", r.Form)
+	fmt.Printf("title : %v \n", title)
 }
 
 func forceHTMLMiddleware(next http.Handler) http.Handler {
