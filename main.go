@@ -1,16 +1,19 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/gorilla/mux"
 
-	_ "goblog/sql"
+	blogSql "goblog/sql"
 )
 
 var router = mux.NewRouter()
@@ -86,9 +89,53 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	lastInsertID, err := saveArticleToDB(title, body)
+	if lastInsertID > 0 {
+		fmt.Fprint(w, "插入成功，ID 为"+strconv.FormatInt(lastInsertID, 10))
+	} else {
+		checkErr(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "500 服务器内部错误")
+	}
+
 	fmt.Fprint(w, "验证通过！</br>")
 	fmt.Fprintf(w, "title 长度 ：%d， 内容 ： %s</br>", utf8.RuneCountInString(title), title)
 	fmt.Fprintf(w, "body 长度 ：%d， 内容 ： %s</br>", utf8.RuneCountInString(body), body)
+}
+
+func saveArticleToDB(title string, body string) (int64, error) {
+	db := blogSql.GetDB()
+
+	// 变量初始化
+	var (
+		id   int64
+		err  error
+		rs   sql.Result
+		stmt *sql.Stmt
+	)
+
+	// 1. 获取一个 prepare 声明语句
+	stmt, err = db.Prepare("INSERT INTO articles (title, body) VALUES(?,?)")
+	// 例行的错误检测
+	if err != nil {
+		return 0, err
+	}
+
+	// 2. 在此函数运行结束后关闭此语句，防止占用 SQL 连接
+	defer stmt.Close()
+
+	// 3. 执行请求，传参进入绑定的内容
+	rs, err = stmt.Exec(title, body)
+	if err != nil {
+		return 0, err
+	}
+
+	// 4. 插入成功的话，会返回自增 ID
+	if id, err = rs.LastInsertId(); id > 0 {
+		return id, nil
+	}
+
+	return 0, err
 }
 
 func forceHTMLMiddleware(next http.Handler) http.Handler {
@@ -120,6 +167,12 @@ func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
