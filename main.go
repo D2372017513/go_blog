@@ -1,18 +1,46 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"goblog/config"
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 	"unicode/utf8"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
 var router = mux.NewRouter()
+var db *sql.DB
+
+func initDB() {
+	var err error
+	dbConfig := config.GetDBCfg()
+	db, err = sql.Open("mysql", dbConfig.FormatDSN())
+	checkErr(err)
+
+	// 设置最大连接数
+	db.SetMaxOpenConns(25)
+	// 设置最大空闲连接数
+	db.SetMaxIdleConns(25)
+	// 设置每个链接的过期时间
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	// 尝试连接，失败会报错
+	err = db.Ping()
+	checkErr(err)
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 type ArticlesFormData struct {
 	Title, Body string
@@ -123,6 +151,8 @@ func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	initDB()
+
 	router.HandleFunc("/", homeHandler).Methods("GET").Name("home")
 	router.HandleFunc("/about", aboutHandler).Methods("GET").Name("about")
 
@@ -142,6 +172,5 @@ func main() {
 	// fmt.Println("homeURL: ", homeURL)
 	// articleURL, _ := router.Get("articles.show").URL("id", "1")
 	// fmt.Println("articleURL: ", articleURL)
-
 	http.ListenAndServe(":3000", removeTrailingSlash(router))
 }

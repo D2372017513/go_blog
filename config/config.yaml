@@ -1,0 +1,10 @@
+server:
+  port: 3000
+
+database:
+  user: "homestead"
+  passwd: "secret"
+  addr: "127.0.0.1:3306"
+  net: "tcp"
+  dbname: "goblog"
+  allownativepasswords: true
