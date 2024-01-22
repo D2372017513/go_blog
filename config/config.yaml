@@ -2,9 +2,9 @@ server:
   port: 3000
 
 database:
-  user: "homestead"
-  passwd: "secret"
+  user: "modeus"
+  passwd: "dhr201313"
   addr: "127.0.0.1:3306"
   net: "tcp"
-  dbname: "goblog"
+  # dbname: "goblog"
   allownativepasswords: true
