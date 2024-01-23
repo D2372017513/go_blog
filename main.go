@@ -18,7 +18,8 @@ import (
 
 var router = mux.NewRouter()
 
-type ArticlesFormData struct {
+type ArticlesData struct {
+	ID          int
 	Title, Body string
 	URL         *url.URL
 	// Errors      map[string]string
@@ -43,7 +44,35 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	fmt.Fprint(w, "文章 ID："+id)
+	db := blogSql.GetDB()
+	stmt, err := db.Prepare("SELECT * FROM articles WHERE id=?")
+	if err != nil {
+		fmt.Fprint(w, "文章 ID："+id)
+	}
+	defer stmt.Close()
+
+	rs := ArticlesData{}
+	err = stmt.QueryRow(id).Scan(&rs.ID, &rs.Title, &rs.Body)
+	// 3. 如果出现错误
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// 3.1 数据未找到
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 文章未找到")
+		} else {
+			// 3.2 数据库错误
+			checkErr(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 服务器内部错误")
+		}
+	} else {
+		// 4. 读取成功
+		tem, err := template.ParseFiles("resources/views/articles/show.gohtml")
+		checkErr(err)
+
+		tem.Execute(w, rs)
+		fmt.Fprint(w, "读取成功，文章标题 —— "+rs.Title)
+	}
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +100,7 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 	if len(showErr) != 0 {
 		storeURL, _ := router.Get("articles.store").URL()
 
-		data := ArticlesFormData{
+		data := ArticlesData{
 			Title:   title,
 			Body:    body,
 			URL:     storeURL,
@@ -158,7 +187,7 @@ func removeTrailingSlash(next http.Handler) http.Handler {
 
 func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	storeURL, _ := router.Get("articles.store").URL()
-	data := ArticlesFormData{URL: storeURL}
+	data := ArticlesData{URL: storeURL}
 	tmpl, err := template.ParseFiles("resources/views/articles/create.tmpl")
 	if err != nil {
 		panic(err)
