@@ -26,6 +26,12 @@ type ArticlesData struct {
 	ShowErr string
 }
 
+func (a ArticlesData) Link() string {
+	URL, err := router.Get("articles.show").URL("id", strconv.Itoa(a.ID))
+	checkErr(err)
+	return URL.String()
+}
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Hello, 欢迎来到 goblog！</h1>")
 }
@@ -68,7 +74,37 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "访问文章列表")
+	query := "SELECT id, title FROM articles"
+	rows, err := blogSql.GetDB().Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Fprintf(w, "当前没有任何文章可供浏览")
+		} else {
+			checkErr(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "500 服务器内部错误")
+		}
+	} else {
+		defer rows.Close()
+		var articles []ArticlesData
+		for rows.Next() {
+			var a ArticlesData
+			err := rows.Scan(&a.ID, &a.Title)
+			checkErr(err)
+			articles = append(articles, a)
+		}
+		// 2.3 检测遍历时是否发生错误
+		err = rows.Err()
+		checkErr(err)
+
+		// 3. 加载模板
+		tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
+		checkErr(err)
+
+		// 4. 渲染模板，将所有文章的数据传输进去
+		err = tmpl.Execute(w, articles)
+		checkErr(err)
+	}
 }
 
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
