@@ -14,7 +14,7 @@ import (
 
 	"goblog/logger"
 	"goblog/route"
-	blogSql "goblog/sql"
+	blogSql "goblog/database"
 	"goblog/types"
 )
 
