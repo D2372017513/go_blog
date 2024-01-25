@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"goblog/config"
+	"goblog/logger"
 	"log"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ func initDB() {
 	var err error
 	dbConfig := config.GetDBCfg()
 	db, err = sql.Open("mysql", dbConfig.FormatDSN())
-	checkErr(err)
+	logger.LogErr(err)
 
 	// 设置最大连接数
 	db.SetMaxOpenConns(25)
@@ -36,7 +37,7 @@ func initDB() {
 
 	// 尝试连接，失败会报错
 	err = db.Ping()
-	checkErr(err)
+	logger.LogErr(err)
 }
 
 func createDB() error {
@@ -76,10 +77,4 @@ func GetDB() *sql.DB {
 func checkFileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
-}
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
