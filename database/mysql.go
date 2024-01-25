@@ -42,8 +42,7 @@ func initDB() {
 
 func createDB() error {
 	workPath, _ := os.Getwd()
-	sqlPath := workPath + "\\sql\\database.sql"
-	fmt.Print(sqlPath)
+	sqlPath := workPath + "\\database\\database.sql"
 	if !checkFileExists(sqlPath) {
 		return fmt.Errorf("sql file is not exist")
 	}
