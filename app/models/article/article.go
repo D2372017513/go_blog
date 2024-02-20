@@ -1,7 +1,6 @@
 package article
 
 import (
-	"net/url"
 	"strconv"
 
 	"goblog/pkg/model"
@@ -12,9 +11,8 @@ import (
 type ArticlesData struct {
 	ID          int64
 	Title, Body string
-	URL         *url.URL `gorm:"-"`
-	// Errors      map[string]string
-	ShowErr string `gorm:"-"`
+	URL         string            `gorm:"-"`
+	Errors      map[string]string `gorm:"-"`
 }
 
 // 修改 gorm 的默认表名

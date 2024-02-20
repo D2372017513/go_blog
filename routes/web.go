@@ -20,6 +20,9 @@ func RegisterWebRoutes(router *mux.Router) {
 	// 文章列表
 	router.HandleFunc("/articles", ac.Index).Methods("GET").Name("articles.index")
 
+	router.HandleFunc("/articles", ac.Store).Methods("POST").Name("articles.store")
+	router.HandleFunc("/articles/create", ac.Create).Methods("GET").Name("articles.create")
+
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 }

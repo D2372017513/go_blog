@@ -5,100 +5,17 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"strconv"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/gorilla/mux"
 
 	"goblog/app/models/article"
 	"goblog/bootstrap"
 	"goblog/logger"
+	"goblog/pkg/route"
 )
 
 var router *mux.Router
-
-func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-	// Form：存储了 post、put 和 get 参数，在使用之前需要调用 ParseForm 方法。PostForm：存储了 post、put 参数，在使用之前需要调用 ParseForm 方法。
-	err := r.ParseForm()
-	if err != nil {
-		fmt.Printf("解析出错！")
-		return
-	}
-
-	title, body := r.PostFormValue("title"), r.PostFormValue("body")
-
-	var showErr string = checkArticleData(title, body)
-
-	if len(showErr) != 0 {
-		storeURL, _ := router.Get("articles.store").URL()
-
-		data := article.ArticlesData{
-			Title:   title,
-			Body:    body,
-			URL:     storeURL,
-			ShowErr: showErr,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/create.tmpl")
-		if err != nil {
-			panic(err)
-		}
-
-		err = tmpl.Execute(w, data)
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
-
-	lastInsertID, err := saveArticleToDB(title, body)
-	if lastInsertID > 0 {
-		fmt.Fprint(w, "插入成功，ID 为"+strconv.FormatInt(lastInsertID, 10))
-	} else {
-		logger.LogErr(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "500 服务器内部错误")
-	}
-
-	fmt.Fprint(w, "验证通过！</br>")
-	fmt.Fprintf(w, "title 长度 ：%d， 内容 ： %s</br>", utf8.RuneCountInString(title), title)
-	fmt.Fprintf(w, "body 长度 ：%d， 内容 ： %s</br>", utf8.RuneCountInString(body), body)
-}
-
-func saveArticleToDB(title string, body string) (int64, error) {
-	db := bootstrap.GetDB()
-
-	// 变量初始化
-	var (
-		id   int64
-		err  error
-		rs   sql.Result
-		stmt *sql.Stmt
-	)
-
-	// 1. 获取一个 prepare 声明语句
-	stmt, err = db.Prepare("INSERT INTO articles (title, body) VALUES(?,?)")
-	// 例行的错误检测
-	if err != nil {
-		return 0, err
-	}
-
-	// 2. 在此函数运行结束后关闭此语句，防止占用 SQL 连接
-	defer stmt.Close()
-
-	// 3. 执行请求，传参进入绑定的内容
-	rs, err = stmt.Exec(title, body)
-	if err != nil {
-		return 0, err
-	}
-
-	// 4. 插入成功的话，会返回自增 ID
-	if id, err = rs.LastInsertId(); id > 0 {
-		return id, nil
-	}
-
-	return 0, err
-}
 
 func forceHTMLMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -116,20 +33,6 @@ func removeTrailingSlash(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
-}
-
-func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
-	storeURL, _ := router.Get("articles.store").URL()
-	data := article.ArticlesData{URL: storeURL}
-	tmpl, err := template.ParseFiles("resources/views/articles/create.tmpl")
-	if err != nil {
-		panic(err)
-	}
-
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func articleEditHandler(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +53,7 @@ func articleEditHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 4. 读取成功，显示表单
-		rs.URL, _ = router.Get("articles.update").URL("id", id)
+		rs.URL = route.Name2URL("articles.update", "id", id)
 		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
 		logger.LogErr(err)
 
@@ -181,7 +84,8 @@ func articleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 		title, body := r.PostFormValue("title"), r.PostFormValue("body")
 
-		var showErr string = checkArticleData(title, body)
+		// var showErr string = checkArticleData(title, body)
+		var showErr string = ""
 
 		// 校验通过允许更新
 		if len(showErr) != 0 {
@@ -202,12 +106,12 @@ func articleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			// 验证不通过，显示理由
-			updateURL, _ := router.Get("articles.edit").URL("id", id)
+			updateURL := route.Name2URL("articles.edit", "id", id)
 			data := article.ArticlesData{
-				Title:   title,
-				Body:    body,
-				URL:     updateURL,
-				ShowErr: showErr,
+				Title: title,
+				Body:  body,
+				URL:   updateURL,
+				// ShowErr: showErr,
 			}
 
 			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
@@ -265,31 +169,10 @@ func getRouteVariable(parameterName string, r *http.Request) string {
 	return vars[parameterName]
 }
 
-// 检查提交的内容是否有效
-func checkArticleData(title, body string) (showErr string) {
-	// 验证标题
-	if title == "" {
-		showErr = "标题不能为空"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		showErr = "标题长度需介于 3-40"
-	}
-
-	// 验证内容
-	if body == "" {
-		showErr = "内容不能为空"
-	} else if utf8.RuneCountInString(body) < 10 {
-		showErr = "内容长度需大于或等于 10 个字节"
-	}
-
-	return
-}
-
 func main() {
 	router = bootstrap.SetupRoute()
 	bootstrap.SetupDB()
 
-	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
-	router.HandleFunc("/articles/create", articleCreateHandler).Methods("GET").Name("articles.create")
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articleEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articleUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articleDeleteHandler).Methods("POST").Name("articles.delete")
