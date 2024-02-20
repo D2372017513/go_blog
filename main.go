@@ -12,10 +12,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"goblog/bootstrap"
 	blogSql "goblog/database"
 	"goblog/logger"
-	route "goblog/router"
-	"goblog/types"
 )
 
 var router *mux.Router
@@ -47,33 +46,6 @@ func (a ArticlesData) Delete() (rowsAffected int64, err error) {
 	}
 
 	return 0, nil
-}
-
-func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
-	id := route.GetRouteVariable("id", r)
-	rs, err := getArticleByID(id)
-
-	// 3. 如果出现错误
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// 3.1 数据未找到
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 文章未找到")
-		} else {
-			// 3.2 数据库错误
-			logger.LogErr(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
-	} else {
-		// 4. 读取成功
-		tmpl, err := template.New("show.gohtml").Funcs(template.FuncMap{
-			"RouteName2URL": route.Name2URL,
-			"Int64ToString": types.Int64ToString,
-		}).ParseFiles("resources/views/articles/show.gohtml")
-		logger.LogErr(err)
-		tmpl.Execute(w, rs)
-	}
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +197,7 @@ func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articleEditHandler(w http.ResponseWriter, r *http.Request) {
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 	rs, err := getArticleByID(id)
 
 	// 3. 如果出现错误
@@ -252,7 +224,7 @@ func articleEditHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articleUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 	_, err := getArticleByID(id)
 
 	if err != nil {
@@ -313,7 +285,7 @@ func articleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func articleDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 	article, err := getArticleByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -352,6 +324,11 @@ func getArticleByID(id string) (ArticlesData, error) {
 	return article, err
 }
 
+func getRouteVariable(parameterName string, r *http.Request) string {
+	vars := mux.Vars(r)
+	return vars[parameterName]
+}
+
 // 检查提交的内容是否有效
 func checkArticleData(title, body string) (showErr string) {
 	// 验证标题
@@ -372,17 +349,14 @@ func checkArticleData(title, body string) (showErr string) {
 }
 
 func main() {
-	route.Initialize()
-	router = route.Router
+	router = bootstrap.SetupRoute()
 
-	router.HandleFunc("/articles/{id:[0-9]+}", articlesShowHandler).Methods("GET").Name("articles.show")
 	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
 	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
 	router.HandleFunc("/articles/create", articleCreateHandler).Methods("GET").Name("articles.create")
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articleEditHandler).Methods("GET").Name("articles.edit")
 	router.HandleFunc("/articles/{id:[0-9]+}", articleUpdateHandler).Methods("POST").Name("articles.update")
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articleDeleteHandler).Methods("POST").Name("articles.delete")
-
 
 	// 中间件：强制内容类型为 HTML
 	router.Use(forceHTMLMiddleware)
