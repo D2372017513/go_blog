@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"goblog/logger"
 	"goblog/pkg/route"
 	"goblog/types"
+
+	"gorm.io/gorm"
 )
 
 type ArticlesData struct {
@@ -30,7 +31,7 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 
 	// 3. 如果出现错误
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			// 3.1 数据未找到
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprint(w, "404 文章未找到")
