@@ -4,12 +4,9 @@ import (
 	"net/url"
 	"strconv"
 
-	"goblog/logger"
 	"goblog/pkg/model"
 	"goblog/pkg/route"
 	"goblog/types"
-
-	"github.com/gorilla/mux"
 )
 
 type ArticlesData struct {
@@ -25,11 +22,8 @@ func (ArticlesData) TableName() string {
 	return "articles"
 }
 
-func (a ArticlesData) Link() string {
-	var router *mux.Router = route.GetRoute()
-	URL, err := router.Get("articles.show").URL("id", strconv.FormatInt(a.ID, 10))
-	logger.LogErr(err)
-	return URL.String()
+func (a *ArticlesData) Link() string {
+	return route.Name2URL("articles.show", "id", strconv.FormatInt(a.ID, 10))
 }
 
 func (a ArticlesData) Delete() (rowsAffected int64, err error) {

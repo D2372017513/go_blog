@@ -15,7 +15,11 @@ func RegisterWebRoutes(router *mux.Router) {
 
 	// 文章相关界面
 	ac := new(controllers.ArticleController)
-	router.HandleFunc("/articles/{id:[0-9]+}", ac.Show).Methods("GET").Name("article.show")
+	router.HandleFunc("/articles/{id:[0-9]+}", ac.Show).Methods("GET").Name("articles.show")
+
+	// 文章列表
+	router.HandleFunc("/articles", ac.Index).Methods("GET").Name("articles.index")
+
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 }

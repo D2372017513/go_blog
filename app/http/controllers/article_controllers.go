@@ -52,3 +52,24 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 		logger.LogErr(err)
 	}
 }
+
+func (ac *ArticleController) Index(w http.ResponseWriter, r *http.Request) {
+	articles, err := article.GetAll()
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			fmt.Fprintf(w, "当前没有任何文章可供浏览")
+		} else {
+			logger.LogErr(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "500 服务器内部错误")
+		}
+	} else {
+		// 3. 加载模板
+		tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
+		logger.LogErr(err)
+
+		// 4. 渲染模板，将所有文章的数据传输进去
+		err = tmpl.Execute(w, articles)
+		logger.LogErr(err)
+	}
+}

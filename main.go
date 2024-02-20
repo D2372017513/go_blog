@@ -18,40 +18,6 @@ import (
 
 var router *mux.Router
 
-func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT id, title FROM articles"
-	rows, err := bootstrap.GetDB().Query(query)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			fmt.Fprintf(w, "当前没有任何文章可供浏览")
-		} else {
-			logger.LogErr(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "500 服务器内部错误")
-		}
-	} else {
-		defer rows.Close()
-		var articles []article.ArticlesData
-		for rows.Next() {
-			var a article.ArticlesData
-			err := rows.Scan(&a.ID, &a.Title)
-			logger.LogErr(err)
-			articles = append(articles, a)
-		}
-		// 2.3 检测遍历时是否发生错误
-		err = rows.Err()
-		logger.LogErr(err)
-
-		// 3. 加载模板
-		tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
-		logger.LogErr(err)
-
-		// 4. 渲染模板，将所有文章的数据传输进去
-		err = tmpl.Execute(w, articles)
-		logger.LogErr(err)
-	}
-}
-
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 	// Form：存储了 post、put 和 get 参数，在使用之前需要调用 ParseForm 方法。PostForm：存储了 post、put 参数，在使用之前需要调用 ParseForm 方法。
 	err := r.ParseForm()
@@ -322,7 +288,6 @@ func main() {
 	router = bootstrap.SetupRoute()
 	bootstrap.SetupDB()
 
-	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
 	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
 	router.HandleFunc("/articles/create", articleCreateHandler).Methods("GET").Name("articles.create")
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articleEditHandler).Methods("GET").Name("articles.edit")
