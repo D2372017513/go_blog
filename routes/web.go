@@ -2,6 +2,7 @@ package routes
 
 import (
 	"goblog/app/http/controllers"
+	"goblog/app/http/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -33,4 +34,7 @@ func RegisterWebRoutes(router *mux.Router) {
 
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
+
+	// 中间件：强制内容类型为 HTML
+	router.Use(middlewares.ForceHTML)
 }
