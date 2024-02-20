@@ -5,52 +5,22 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/gorilla/mux"
 
+	"goblog/app/models/article"
 	"goblog/bootstrap"
-	blogSql "goblog/database"
 	"goblog/logger"
 )
 
 var router *mux.Router
 
-type ArticlesData struct {
-	ID          int64
-	Title, Body string
-	URL         *url.URL
-	// Errors      map[string]string
-	ShowErr string
-}
-
-func (a ArticlesData) Link() string {
-	URL, err := router.Get("articles.show").URL("id", strconv.FormatInt(a.ID, 10))
-	logger.LogErr(err)
-	return URL.String()
-}
-
-func (a ArticlesData) Delete() (rowsAffected int64, err error) {
-	delete := "DELETE FROM articles WHERE id = ?"
-	rs, err := blogSql.GetDB().Exec(delete, strconv.FormatInt(int64(a.ID), 10))
-
-	if err != nil {
-		return 0, err
-	}
-
-	if n, _ := rs.RowsAffected(); n > 0 {
-		return n, nil
-	}
-
-	return 0, nil
-}
-
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT id, title FROM articles"
-	rows, err := blogSql.GetDB().Query(query)
+	rows, err := bootstrap.GetDB().Query(query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Fprintf(w, "当前没有任何文章可供浏览")
@@ -61,9 +31,9 @@ func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		defer rows.Close()
-		var articles []ArticlesData
+		var articles []article.ArticlesData
 		for rows.Next() {
-			var a ArticlesData
+			var a article.ArticlesData
 			err := rows.Scan(&a.ID, &a.Title)
 			logger.LogErr(err)
 			articles = append(articles, a)
@@ -97,7 +67,7 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 	if len(showErr) != 0 {
 		storeURL, _ := router.Get("articles.store").URL()
 
-		data := ArticlesData{
+		data := article.ArticlesData{
 			Title:   title,
 			Body:    body,
 			URL:     storeURL,
@@ -130,7 +100,7 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveArticleToDB(title string, body string) (int64, error) {
-	db := blogSql.GetDB()
+	db := bootstrap.GetDB()
 
 	// 变量初始化
 	var (
@@ -184,7 +154,7 @@ func removeTrailingSlash(next http.Handler) http.Handler {
 
 func articleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	storeURL, _ := router.Get("articles.store").URL()
-	data := ArticlesData{URL: storeURL}
+	data := article.ArticlesData{URL: storeURL}
 	tmpl, err := template.ParseFiles("resources/views/articles/create.tmpl")
 	if err != nil {
 		panic(err)
@@ -250,7 +220,7 @@ func articleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		// 校验通过允许更新
 		if len(showErr) != 0 {
 			query := "UPDATE articles SET title = ?, body = ? WHERE id = ?"
-			rs, err := blogSql.GetDB().Exec(query, title, body, id)
+			rs, err := bootstrap.GetDB().Exec(query, title, body, id)
 			if err != nil {
 				logger.LogErr(err)
 				w.WriteHeader(http.StatusInternalServerError)
@@ -267,7 +237,7 @@ func articleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			// 验证不通过，显示理由
 			updateURL, _ := router.Get("articles.edit").URL("id", id)
-			data := ArticlesData{
+			data := article.ArticlesData{
 				Title:   title,
 				Body:    body,
 				URL:     updateURL,
@@ -317,10 +287,10 @@ func articleDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getArticleByID(id string) (ArticlesData, error) {
-	article := ArticlesData{}
+func getArticleByID(id string) (article.ArticlesData, error) {
+	article := article.ArticlesData{}
 	query := "SELECT * FROM articles WHERE id = ?"
-	err := blogSql.GetDB().QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
+	err := bootstrap.GetDB().QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
 	return article, err
 }
 
@@ -350,6 +320,7 @@ func checkArticleData(title, body string) (showErr string) {
 
 func main() {
 	router = bootstrap.SetupRoute()
+	bootstrap.SetupDB()
 
 	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
 	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")

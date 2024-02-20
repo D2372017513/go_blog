@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	blogSql "goblog/database"
+	"goblog/app/models/article"
 	"goblog/logger"
 	"goblog/pkg/route"
 	"goblog/types"
@@ -26,7 +26,7 @@ type ArticleController struct {
 
 func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 	id := route.GetRouteVariable("id", r)
-	rs, err := getArticleByID(id)
+	rs, err := article.Get(id)
 
 	// 3. 如果出现错误
 	if err != nil {
@@ -50,11 +50,4 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 		err = tmpl.Execute(w, rs)
 		logger.LogErr(err)
 	}
-}
-
-func getArticleByID(id string) (ArticlesData, error) {
-	article := ArticlesData{}
-	query := "SELECT * FROM articles WHERE id = ?"
-	err := blogSql.GetDB().QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
-	return article, err
 }

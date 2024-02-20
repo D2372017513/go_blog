@@ -56,6 +56,11 @@ func GetServerCfg() ServerCfg {
 	return cfg.ServerCfg
 }
 
+func GetMysqlPath() string {
+	databaseCfg := cfg.DatabaseCfg
+	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", databaseCfg.User, databaseCfg.Passwd, databaseCfg.Addr, databaseCfg.DBName)
+}
+
 // 添加所有的路径
 func addConfigPath() {
 	v.SetConfigType("yaml")
