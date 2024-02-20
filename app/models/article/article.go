@@ -24,21 +24,6 @@ func (a *ArticlesData) Link() string {
 	return route.Name2URL("articles.show", "id", strconv.FormatInt(a.ID, 10))
 }
 
-func (a ArticlesData) Delete() (rowsAffected int64, err error) {
-	// delete := "DELETE FROM articles WHERE id = ?"
-	// rs, err := model.DB.Exec(delete, strconv.FormatInt(int64(a.ID), 10))
-
-	// if err != nil {
-	// 	return 0, err
-	// }
-
-	// if n, _ := rs.RowsAffected(); n > 0 {
-	// 	return n, nil
-	// }
-
-	return 0, nil
-}
-
 func Get(idstr string) (ArticlesData, error) {
 	article := ArticlesData{}
 	id := types.StringToUint64(idstr)
