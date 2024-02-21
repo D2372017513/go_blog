@@ -31,6 +31,11 @@ func RegisterWebRoutes(router *mux.Router) {
 	// 文章删除
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", ac.Delete).Methods("POST").Name("articles.delete")
 
+	auc := new(controllers.AuthController)
+	// 登录/注册界面
+	router.HandleFunc("/auth/register", auc.Register).Methods("GET").Name("auth.register")
+	router.HandleFunc("/auth/do_register", auc.DoRegister).Methods("POST").Name("auth.doregister")
+
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 
