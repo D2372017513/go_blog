@@ -31,10 +31,6 @@ func SetupDB() {
 	createDB(sqlDB)
 }
 
-func GetDB() *sql.DB {
-	return sqlDB
-}
-
 func createDB(db *sql.DB) error {
 	workPath, _ := os.Getwd()
 	sqlPath := workPath + "\\database\\database.sql"

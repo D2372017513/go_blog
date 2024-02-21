@@ -2,7 +2,6 @@ package routes
 
 import (
 	"goblog/app/http/controllers"
-	"goblog/app/http/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -35,6 +34,12 @@ func RegisterWebRoutes(router *mux.Router) {
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 
+	// 静态资源
+	// 	PathPrefix() 匹配参数里 /css/ 前缀的 URI ， 链式调用 Handler() 指定处理器为 http.FileServer()。
+	// http.FileServer() 是文件目录处理器，参数 http.Dir("./public") 是指定在此目录下寻找文件。
+	router.PathPrefix("/css/").Handler(http.FileServer(http.Dir("./public")))
+	router.PathPrefix("/js/").Handler(http.FileServer(http.Dir("./public")))
+
 	// 中间件：强制内容类型为 HTML
-	router.Use(middlewares.ForceHTML)
+	// router.Use(middlewares.ForceHTML)
 }
