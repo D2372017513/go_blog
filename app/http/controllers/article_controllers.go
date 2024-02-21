@@ -2,15 +2,16 @@ package controllers
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 	"unicode/utf8"
 
+	"goblog/app/models"
 	"goblog/app/models/article"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/view"
+	"goblog/types"
 
 	"gorm.io/gorm"
 )
@@ -35,7 +36,7 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "500 服务器内部错误")
 		}
 	} else {
-		view.Render(w, "articles.show", rs)
+		view.Render(w, rs, "articles.show")
 	}
 }
 
@@ -50,27 +51,12 @@ func (ac *ArticleController) Index(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "500 服务器内部错误")
 		}
 	} else {
-		view.Render(w, "articles.index", articles)
+		view.Render(w, articles, "articles.index")
 	}
 }
 
 func (ac *ArticleController) Create(w http.ResponseWriter, r *http.Request) {
-	storeURL := route.Name2URL("articles.store")
-	data := article.ArticlesData{
-		Title:  "",
-		Body:   "",
-		URL:    storeURL,
-		Errors: nil,
-	}
-	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-	if err != nil {
-		panic(err)
-	}
-
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		panic(err)
-	}
+	view.Render(w, article.ArticlesData{}, "articles.create", "articles._form_field")
 }
 
 func (ac *ArticleController) Store(w http.ResponseWriter, r *http.Request) {
@@ -90,15 +76,7 @@ func (ac *ArticleController) Store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(errors) != 0 {
-		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-		if err != nil {
-			panic(err)
-		}
-
-		err = tmpl.Execute(w, data)
-		if err != nil {
-			panic(err)
-		}
+		view.Render(w, data, "articles.create", "articles._form_field")
 		return
 	}
 
@@ -129,13 +107,7 @@ func (ac *ArticleController) Edit(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "500 服务器内部错误")
 		}
 	} else {
-		// 4. 读取成功，显示表单
-		rs.URL = route.Name2URL("articles.update", "id", id)
-		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-		logger.LogErr(err)
-
-		err = tmpl.Execute(w, rs)
-		logger.LogErr(err)
+		view.Render(w, rs, "articles.edit", "articles._form_field")
 	}
 }
 
@@ -163,10 +135,11 @@ func (ac *ArticleController) Update(w http.ResponseWriter, r *http.Request) {
 		updateURL := route.Name2URL("articles.edit", "id", id)
 		errors := validateArticleFormData(title, body)
 		data := article.ArticlesData{
-			Title:  title,
-			Body:   body,
-			URL:    updateURL,
-			Errors: errors,
+			BaseModel: models.BaseModel{ID: int64(types.StringToInt64(id))},
+			Title:     title,
+			Body:      body,
+			URL:       updateURL,
+			Errors:    errors,
 		}
 
 		// 校验通过允许更新
@@ -187,11 +160,7 @@ func (ac *ArticleController) Update(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			// 验证不通过，显示理由
-			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-			logger.LogErr(err)
-
-			err = tmpl.Execute(w, data)
-			logger.LogErr(err)
+			view.Render(w, data, "articles.edit", "articles._form_field")
 		}
 	}
 

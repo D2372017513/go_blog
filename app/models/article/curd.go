@@ -1,6 +1,7 @@
 package article
 
 import (
+	"fmt"
 	"goblog/pkg/logger"
 	"goblog/pkg/model"
 )
@@ -28,7 +29,9 @@ func (article *ArticlesData) Create() (err error) {
 
 // Update 创建文章
 func (article *ArticlesData) Update() (rowsAffected int64, err error) {
+	fmt.Println(article)
 	result := model.DB.Save(&article)
+	fmt.Println(article)
 	if err = result.Error; err != nil {
 		logger.LogErr(err)
 		return 0, err
