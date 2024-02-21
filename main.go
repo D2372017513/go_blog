@@ -5,7 +5,7 @@ import (
 
 	"goblog/app/http/middlewares"
 	"goblog/bootstrap"
-	"goblog/logger"
+	"goblog/pkg/logger"
 )
 
 func main() {

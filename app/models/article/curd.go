@@ -1,7 +1,7 @@
 package article
 
 import (
-	"goblog/logger"
+	"goblog/pkg/logger"
 	"goblog/pkg/model"
 )
 

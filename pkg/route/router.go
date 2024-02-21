@@ -1,7 +1,7 @@
 package route
 
 import (
-	"goblog/logger"
+	"goblog/pkg/logger"
 	"net/http"
 
 	"github.com/gorilla/mux"

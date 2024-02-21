@@ -3,13 +3,14 @@ package article
 import (
 	"strconv"
 
+	"goblog/app/models"
 	"goblog/pkg/model"
 	"goblog/pkg/route"
 	"goblog/types"
 )
 
 type ArticlesData struct {
-	ID          int64
+	models.BaseModel
 	Title, Body string
 	URL         string            `gorm:"-"`
 	Errors      map[string]string `gorm:"-"`

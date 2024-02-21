@@ -2,7 +2,7 @@ package model
 
 import (
 	"goblog/config"
-	"goblog/logger"
+	"goblog/pkg/logger"
 
 	gormlogger "gorm.io/gorm/logger"
 
