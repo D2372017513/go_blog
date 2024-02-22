@@ -36,7 +36,9 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "500 服务器内部错误")
 		}
 	} else {
-		view.Render(w, rs, "articles.show")
+		view.Render(w, view.D{
+			"Article": rs,
+		}, "articles.show")
 	}
 }
 
@@ -51,12 +53,14 @@ func (ac *ArticleController) Index(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "500 服务器内部错误")
 		}
 	} else {
-		view.Render(w, articles, "articles.index")
+		view.Render(w, view.D{
+			"Articles": articles,
+		}, "articles.index")
 	}
 }
 
 func (ac *ArticleController) Create(w http.ResponseWriter, r *http.Request) {
-	view.Render(w, article.ArticlesData{}, "articles.create", "articles._form_field")
+	view.Render(w, view.D{}, "articles.create", "articles._form_field")
 }
 
 func (ac *ArticleController) Store(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +80,9 @@ func (ac *ArticleController) Store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(errors) != 0 {
-		view.Render(w, data, "articles.create", "articles._form_field")
+		view.Render(w, view.D{
+			"Article": data,
+		}, "articles.create", "articles._form_field")
 		return
 	}
 
@@ -107,7 +113,9 @@ func (ac *ArticleController) Edit(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "500 服务器内部错误")
 		}
 	} else {
-		view.Render(w, rs, "articles.edit", "articles._form_field")
+		view.Render(w, view.D{
+			"Article": rs,
+		}, "articles.edit", "articles._form_field")
 	}
 }
 
@@ -160,7 +168,9 @@ func (ac *ArticleController) Update(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			// 验证不通过，显示理由
-			view.Render(w, data, "articles.edit", "articles._form_field")
+			view.Render(w, view.D{
+				"Article": data,
+			}, "articles.edit", "articles._form_field")
 		}
 	}
 

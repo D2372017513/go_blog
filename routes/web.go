@@ -11,11 +11,11 @@ import (
 // RegisterWebRoutes 注册相关路由
 func RegisterWebRoutes(router *mux.Router) {
 	pc := new(controllers.PagesController)
-	router.HandleFunc("/", pc.Home).Methods("GET").Name("home")
 	router.HandleFunc("/about", pc.About).Methods("GET").Name("about")
 
 	// 文章相关界面
 	ac := new(controllers.ArticleController)
+	router.HandleFunc("/", ac.Index).Methods("GET").Name("home")
 	router.HandleFunc("/articles/{id:[0-9]+}", ac.Show).Methods("GET").Name("articles.show")
 
 	// 文章列表
@@ -24,6 +24,7 @@ func RegisterWebRoutes(router *mux.Router) {
 	// 文章创建
 	router.HandleFunc("/articles", ac.Store).Methods("POST").Name("articles.store")
 	router.HandleFunc("/articles/create", ac.Create).Methods("GET").Name("articles.create")
+	
 
 	// 文章更新
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", ac.Edit).Methods("GET").Name("articles.edit")
