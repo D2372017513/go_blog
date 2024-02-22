@@ -2,6 +2,7 @@ package routes
 
 import (
 	"goblog/app/http/controllers"
+	"goblog/app/http/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -35,6 +36,8 @@ func RegisterWebRoutes(router *mux.Router) {
 	// 登录/注册界面
 	router.HandleFunc("/auth/register", auc.Register).Methods("GET").Name("auth.register")
 	router.HandleFunc("/auth/do_register", auc.DoRegister).Methods("POST").Name("auth.doregister")
+	router.HandleFunc("/auth/login", auc.Login).Methods("GET").Name("auth.login")
+	router.HandleFunc("/auth/do_login", auc.DoLogin).Methods("POST").Name("auth.dologin")
 
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
@@ -47,4 +50,7 @@ func RegisterWebRoutes(router *mux.Router) {
 
 	// 中间件：强制内容类型为 HTML
 	// router.Use(middlewares.ForceHTML)
+
+	// 启动session
+	router.Use(middlewares.StartSession)
 }

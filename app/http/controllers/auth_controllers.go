@@ -44,3 +44,13 @@ func (auth *AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+// Login 渲染登录界面
+func (auth *AuthController) Login(w http.ResponseWriter, r *http.Request) {
+	view.RenderSimple(w, view.D{}, "auth.login")
+}
+
+// DoLogin 处理登录逻辑
+func (auth *AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
+
+}
