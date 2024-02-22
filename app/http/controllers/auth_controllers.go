@@ -19,7 +19,7 @@ func (auth *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	view.RenderSimple(w, view.D{}, "auth.register")
 }
 
-func (auth *AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
+func (a *AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 	_user := user.User{
 		Name:            r.FormValue("name"),
 		Email:           r.FormValue("email"),
@@ -38,7 +38,8 @@ func (auth *AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 		err := _user.Create()
 		logger.LogErr(err)
 		if _user.ID > 0 {
-			fmt.Fprint(w, "插入成功，ID 为"+_user.GetStringID())
+			auth.Login(_user)
+			http.Redirect(w, r, "/", http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "创建用户失败，请联系管理员")
