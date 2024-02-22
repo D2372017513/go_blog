@@ -24,7 +24,6 @@ func RegisterWebRoutes(router *mux.Router) {
 	// 文章创建
 	router.HandleFunc("/articles", ac.Store).Methods("POST").Name("articles.store")
 	router.HandleFunc("/articles/create", ac.Create).Methods("GET").Name("articles.create")
-	
 
 	// 文章更新
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", ac.Edit).Methods("GET").Name("articles.edit")
@@ -39,6 +38,7 @@ func RegisterWebRoutes(router *mux.Router) {
 	router.HandleFunc("/auth/do_register", auc.DoRegister).Methods("POST").Name("auth.doregister")
 	router.HandleFunc("/auth/login", auc.Login).Methods("GET").Name("auth.login")
 	router.HandleFunc("/auth/do_login", auc.DoLogin).Methods("POST").Name("auth.dologin")
+	router.HandleFunc("/auth/logout", auc.Logout).Methods("POST").Name("auth.logout")
 
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
