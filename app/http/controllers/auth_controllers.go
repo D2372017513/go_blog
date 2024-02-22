@@ -6,6 +6,7 @@ import (
 
 	"goblog/app/models/user"
 	"goblog/app/requests"
+	"goblog/pkg/auth"
 	"goblog/pkg/logger"
 	"goblog/pkg/view"
 )
@@ -51,6 +52,17 @@ func (auth *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // DoLogin 处理登录逻辑
-func (auth *AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
+func (a *AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
+	email := r.PostFormValue("email")
+	passwd := r.PostFormValue("password")
 
+	if err := auth.Attempt(email, passwd); err == nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+	} else {
+		view.RenderSimple(w, view.D{
+			"Error":    err.Error(),
+			"Email":    email,
+			"password": passwd,
+		}, "auth.login")
+	}
 }

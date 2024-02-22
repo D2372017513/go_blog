@@ -25,3 +25,8 @@ func (user *User) Create() (err error) {
 
 	return nil
 }
+
+// ComparePassword 比较用户密码
+func (user *User) ComparePassword(passwd string) bool {
+	return user.Password == passwd
+}
