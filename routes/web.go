@@ -22,23 +22,23 @@ func RegisterWebRoutes(router *mux.Router) {
 	router.HandleFunc("/articles", ac.Index).Methods("GET").Name("articles.index")
 
 	// 文章创建
-	router.HandleFunc("/articles", ac.Store).Methods("POST").Name("articles.store")
-	router.HandleFunc("/articles/create", ac.Create).Methods("GET").Name("articles.create")
+	router.HandleFunc("/articles", middlewares.Auth(ac.Store)).Methods("POST").Name("articles.store")
+	router.HandleFunc("/articles/create", middlewares.Auth(ac.Create)).Methods("GET").Name("articles.create")
 
 	// 文章更新
-	router.HandleFunc("/articles/{id:[0-9]+}/edit", ac.Edit).Methods("GET").Name("articles.edit")
-	router.HandleFunc("/articles/{id:[0-9]+}", ac.Update).Methods("POST").Name("articles.update")
+	router.HandleFunc("/articles/{id:[0-9]+}/edit", middlewares.Auth(ac.Edit)).Methods("GET").Name("articles.edit")
+	router.HandleFunc("/articles/{id:[0-9]+}", middlewares.Auth(ac.Update)).Methods("POST").Name("articles.update")
 
 	// 文章删除
-	router.HandleFunc("/articles/{id:[0-9]+}/delete", ac.Delete).Methods("POST").Name("articles.delete")
+	router.HandleFunc("/articles/{id:[0-9]+}/delete", middlewares.Auth(ac.Delete)).Methods("POST").Name("articles.delete")
 
 	auc := new(controllers.AuthController)
 	// 登录/注册界面
-	router.HandleFunc("/auth/register", auc.Register).Methods("GET").Name("auth.register")
-	router.HandleFunc("/auth/do_register", auc.DoRegister).Methods("POST").Name("auth.doregister")
-	router.HandleFunc("/auth/login", auc.Login).Methods("GET").Name("auth.login")
-	router.HandleFunc("/auth/do_login", auc.DoLogin).Methods("POST").Name("auth.dologin")
-	router.HandleFunc("/auth/logout", auc.Logout).Methods("POST").Name("auth.logout")
+	router.HandleFunc("/auth/register", middlewares.Guest(auc.Register)).Methods("GET").Name("auth.register")
+	router.HandleFunc("/auth/do_register", middlewares.Guest(auc.DoRegister)).Methods("POST").Name("auth.doregister")
+	router.HandleFunc("/auth/login", middlewares.Guest(auc.Login)).Methods("GET").Name("auth.login")
+	router.HandleFunc("/auth/do_login", middlewares.Guest(auc.DoLogin)).Methods("POST").Name("auth.dologin")
+	router.HandleFunc("/auth/logout", middlewares.Auth(auc.Logout)).Methods("POST").Name("auth.logout")
 
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
