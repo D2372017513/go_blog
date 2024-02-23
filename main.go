@@ -1,22 +1,24 @@
 package main
 
 import (
-	"net/http"
-
 	"goblog/app/http/middlewares"
 	"goblog/bootstrap"
-	"goblog/pkg/logger"
+	"goblog/config"
+	c "goblog/pkg/config"
+	"net/http"
 )
 
+func init() {
+	// 初始化配置信息
+	config.Initialize()
+}
+
 func main() {
-	router := bootstrap.SetupRoute()
+	// 初始化 SQL
 	bootstrap.SetupDB()
 
-	// 通过命名路由获取 URL 示例
-	// homeURL, _ := router.Get("home").URL()
-	// fmt.Println("homeURL: ", homeURL)
-	// articleURL, _ := router.Get("articles.show").URL("id", "1")
-	// fmt.Println("articleURL: ", articleURL)
-	err := http.ListenAndServe(":3000", middlewares.RemoveTrailingSlash(router))
-	logger.LogErr(err)
+	// 初始化路由绑定
+	router := bootstrap.SetupRoute()
+
+	http.ListenAndServe(":"+c.GetString("app.port"), middlewares.RemoveTrailingSlash(router))
 }
