@@ -2,6 +2,7 @@ package view
 
 import (
 	"goblog/pkg/auth"
+	"goblog/pkg/flash"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"html/template"
@@ -26,6 +27,8 @@ func RenderTemplate(w io.Writer, name string, data D, tplFiles ...string) {
 	allFiles := getTempalteFiles(tplFiles...)
 
 	data["isLogined"] = auth.Check()
+	data["loginUser"] = auth.User
+	data["flash"] = flash.All()
 
 	// 5 解析所有模板文件
 	tmpl, err := template.New("").
