@@ -31,3 +31,8 @@ func (user *User) Create() (err error) {
 func (user *User) ComparePassword(passwd string) bool {
 	return password.CheckHash(passwd, user.Password)
 }
+
+// CompareEmail 比较用户邮箱
+func (u *User) CompareEmail(email string) bool {
+	return email == u.Email
+}

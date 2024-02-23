@@ -33,6 +33,10 @@ func User() user.User {
 func Attempt(email string, password string) error {
 	// 1. 根据 Email 获取用户
 	_user, err := user.GetByEmail(email)
+	if err != nil {
+		// 通过邮箱获取不到的话尝试用 name 来获取
+		_user, err = user.GetByName(email)
+	}
 
 	// 2. 如果出现错误
 	if err != nil {
