@@ -11,9 +11,9 @@ import (
 
 type ArticlesData struct {
 	models.BaseModel
-	Title, Body string
-	URL         string            `gorm:"-"`
-	Errors      map[string]string `gorm:"-"`
+	Title string `gorm:"type:varchar(255);not null" valid:"title"`
+	Body  string `gorm:"type:longtext;not null" valid:"body"`
+	URL   string `gorm:"-"`
 }
 
 // 修改 gorm 的默认表名

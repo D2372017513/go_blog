@@ -10,11 +10,11 @@ import (
 type User struct {
 	models.BaseModel
 
-	Name     string `gorm:"column:name;type:varchar(255);not null;unique" vaild:"name"`
-	Email    string `gorm:"column:email;type:varchar(255);default:null;unique" vaild:"email"`
-	Password string `gorm:"column:password;type:varchar(255)" vaild:"password"`
+	Name     string `gorm:"column:name;type:varchar(255);not null;unique" valid:"name"`
+	Email    string `gorm:"column:email;type:varchar(255);default:null;unique" valid:"email"`
+	Password string `gorm:"column:password;type:varchar(255)" valid:"password"`
 
-	PasswordConfirm string `gorm:"-" vaild:"passwordConfirm"`
+	PasswordConfirm string `gorm:"-" valid:"passwordConfirm"`
 }
 
 // Create 插入一个新用户

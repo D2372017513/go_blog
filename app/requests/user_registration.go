@@ -41,7 +41,7 @@ func ValidateRegistrationForm(data user.User) map[string][]string {
 	opts := govalidator.Options{
 		Data:          &data,
 		Rules:         rules,
-		TagIdentifier: "vaild",
+		TagIdentifier: "valid",
 		Messages:      messages,
 	}
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"unicode/utf8"
 
 	"goblog/app/models"
 	"goblog/app/models/article"
+	"goblog/app/requests"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/view"
@@ -72,16 +72,16 @@ func (ac *ArticleController) Store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title, body := r.PostFormValue("title"), r.PostFormValue("body")
-	errors := validateArticleFormData(title, body)
 	data := article.ArticlesData{
-		Title:  title,
-		Body:   body,
-		Errors: errors,
+		Title: title,
+		Body:  body,
 	}
+	errors := requests.ValidateArticleForm(data)
 
 	if len(errors) != 0 {
 		view.Render(w, view.D{
 			"Article": data,
+			"Errors":  errors,
 		}, "articles.create", "articles._form_field")
 		return
 	}
@@ -141,14 +141,13 @@ func (ac *ArticleController) Update(w http.ResponseWriter, r *http.Request) {
 
 		title, body := r.PostFormValue("title"), r.PostFormValue("body")
 		updateURL := route.Name2URL("articles.edit", "id", id)
-		errors := validateArticleFormData(title, body)
 		data := article.ArticlesData{
 			BaseModel: models.BaseModel{ID: int64(types.StringToInt64(id))},
 			Title:     title,
 			Body:      body,
 			URL:       updateURL,
-			Errors:    errors,
 		}
+		errors := requests.ValidateArticleForm(data)
 
 		// 校验通过允许更新
 		if len(errors) == 0 {
@@ -170,6 +169,7 @@ func (ac *ArticleController) Update(w http.ResponseWriter, r *http.Request) {
 			// 验证不通过，显示理由
 			view.Render(w, view.D{
 				"Article": data,
+				"Errors":  errors,
 			}, "articles.edit", "articles._form_field")
 		}
 	}
@@ -208,26 +208,6 @@ func (ac *ArticleController) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-}
-
-// 检查提交的内容是否有效
-func validateArticleFormData(title, body string) map[string]string {
-	errors := make(map[string]string)
-	// 验证标题
-	if title == "" {
-		errors["title"] = "标题不能为空"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "标题长度需介于 3-40"
-	}
-
-	// 验证内容
-	if body == "" {
-		errors["body"] = "内容不能为空"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "内容长度需大于或等于 10 个字节"
-	}
-
-	return errors
 }
 
 // func saveArticleToDB(title string, body string) (int64, error) {
