@@ -4,12 +4,23 @@ import (
 	"fmt"
 	"goblog/pkg/logger"
 	"goblog/pkg/model"
+	"goblog/types"
 )
+
+func Get(idstr string) (ArticlesData, error) {
+	article := ArticlesData{}
+	id := types.StringToUint64(idstr)
+	if err := model.DB.Preload("User").First(&article, id).Error; err != nil {
+		return article, err
+	}
+
+	return article, nil
+}
 
 // 获取全部文章
 func GetAll() ([]ArticlesData, error) {
 	var articles []ArticlesData
-	if err := model.DB.Find(&articles); err != nil {
+	if err := model.DB.Preload("User").Find(&articles); err != nil {
 		return articles, err.Error
 	}
 

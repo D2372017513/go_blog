@@ -36,3 +36,8 @@ func (user *User) ComparePassword(passwd string) bool {
 func (u *User) CompareEmail(email string) bool {
 	return email == u.Email
 }
+
+// Link 方法用来生成用户链接
+func (user User) Link() string {
+	return ""
+}

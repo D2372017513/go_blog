@@ -8,6 +8,7 @@ import (
 	"goblog/app/models"
 	"goblog/app/models/article"
 	"goblog/app/requests"
+	"goblog/pkg/auth"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
 	"goblog/pkg/view"
@@ -38,7 +39,7 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 	} else {
 		view.Render(w, view.D{
 			"Article": rs,
-		}, "articles.show")
+		}, "articles.show", "articles._article_meta")
 	}
 }
 
@@ -55,7 +56,7 @@ func (ac *ArticleController) Index(w http.ResponseWriter, r *http.Request) {
 	} else {
 		view.Render(w, view.D{
 			"Articles": articles,
-		}, "articles.index")
+		}, "articles.index", "articles._article_meta")
 	}
 }
 
@@ -73,8 +74,9 @@ func (ac *ArticleController) Store(w http.ResponseWriter, r *http.Request) {
 
 	title, body := r.PostFormValue("title"), r.PostFormValue("body")
 	data := article.ArticlesData{
-		Title: title,
-		Body:  body,
+		Title:  title,
+		Body:   body,
+		UserID: auth.User().ID,
 	}
 	errors := requests.ValidateArticleForm(data)
 
