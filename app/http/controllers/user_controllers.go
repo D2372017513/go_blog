@@ -8,11 +8,10 @@ import (
 	"goblog/pkg/route"
 	"goblog/pkg/view"
 	"net/http"
-
-	"gorm.io/gorm"
 )
 
 type UserController struct {
+	BaseController
 }
 
 func (uc UserController) Show(w http.ResponseWriter, r *http.Request) {
@@ -20,14 +19,7 @@ func (uc UserController) Show(w http.ResponseWriter, r *http.Request) {
 
 	user, err := user.Get(user_id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 用户未找到")
-		} else {
-			logger.LogErr(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 服务器内部错误")
-		}
+		uc.ResponseForSQLError(w, err)
 	} else {
 		articles, err := article.GetByUserID(user_id)
 		if err != nil {
