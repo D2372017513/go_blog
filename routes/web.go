@@ -40,6 +40,10 @@ func RegisterWebRoutes(router *mux.Router) {
 	router.HandleFunc("/auth/do_login", middlewares.Guest(auc.DoLogin)).Methods("POST").Name("auth.dologin")
 	router.HandleFunc("/auth/logout", middlewares.Auth(auc.Logout)).Methods("POST").Name("auth.logout")
 
+	uc := new(controllers.UserController)
+	// 用户相关界面
+	router.HandleFunc("/user/{id:[0-9]+}", middlewares.Auth(uc.Show)).Methods("GET").Name("users.show")
+
 	// 自定义 404 页面
 	router.NotFoundHandler = http.HandlerFunc(pc.NotFound)
 

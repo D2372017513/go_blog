@@ -27,6 +27,14 @@ func GetAll() ([]ArticlesData, error) {
 	return articles, nil
 }
 
+// GetByUserID 通过用户id获取文章
+func GetByUserID(user_id string) (articles []ArticlesData, err error) {
+	if err = model.DB.Where("user_id = ?", user_id).Preload("User").Find(&articles).Error; err != nil {
+		return
+	}
+	return articles, nil
+}
+
 // Create 创建文章，通过 article.ID 来判断是否创建成功
 func (article *ArticlesData) Create() (err error) {
 	result := model.DB.Create(&article)
