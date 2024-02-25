@@ -27,3 +27,12 @@ func StringToInt64(str string) int64 {
 	}
 	return i
 }
+
+// StringToInt 将字符串转换为 int
+func StringToInt(str string) int {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		logger.LogErr(err)
+	}
+	return i
+}

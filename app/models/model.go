@@ -1,7 +1,7 @@
 package models
 
 import (
-	"goblog/types"
+	"goblog/pkg/types"
 	"time"
 )
 

@@ -12,8 +12,8 @@ import (
 	"goblog/pkg/auth"
 	"goblog/pkg/logger"
 	"goblog/pkg/route"
+	"goblog/pkg/types"
 	"goblog/pkg/view"
-	"goblog/types"
 )
 
 type ArticleController struct {
@@ -36,12 +36,17 @@ func (ac *ArticleController) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *ArticleController) Index(w http.ResponseWriter, r *http.Request) {
-	articles, err := article.GetAll()
+	// 1. 获取结果集
+	articles, pagerData, err := article.GetAll(r, 2)
+
 	if err != nil {
 		ac.ResponseForSQLError(w, err)
 	} else {
+
+		// ---  2. 加载模板 ---
 		view.Render(w, view.D{
-			"Articles": articles,
+			"Articles":  articles,
+			"PagerData": pagerData,
 		}, "articles.index", "articles._article_meta")
 	}
 }

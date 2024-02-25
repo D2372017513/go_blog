@@ -2,7 +2,7 @@ package user
 
 import (
 	"goblog/pkg/model"
-	"goblog/types"
+	"goblog/pkg/types"
 )
 
 // All 获取所有用户数据
