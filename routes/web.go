@@ -40,6 +40,12 @@ func RegisterWebRoutes(router *mux.Router) {
 	router.HandleFunc("/auth/do_login", middlewares.Guest(auc.DoLogin)).Methods("POST").Name("auth.dologin")
 	router.HandleFunc("/auth/logout", middlewares.Auth(auc.Logout)).Methods("POST").Name("auth.logout")
 
+    // 文章分类
+    cc := new(controllers.CategoriesController)
+    router.HandleFunc("/categories/create", middlewares.Auth(cc.Create)).Methods("GET").Name("categories.create")
+    router.HandleFunc("/categories", middlewares.Auth(cc.Store)).Methods("POST").Name("categories.store")
+	router.HandleFunc("/categories/{id:[0-9]+}", cc.Show).Methods("GET").Name("categories.show")
+
 	uc := new(controllers.UserController)
 	// 用户相关界面
 	router.HandleFunc("/user/{id:[0-9]+}", middlewares.Auth(uc.Show)).Methods("GET").Name("users.show")
