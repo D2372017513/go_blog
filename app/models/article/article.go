@@ -10,11 +10,12 @@ import (
 
 type ArticlesData struct {
 	models.BaseModel
-	Title  string `gorm:"type:varchar(255);not null" valid:"title"`
-	Body   string `gorm:"type:longtext;not null" valid:"body"`
-	UserID int64  `gorm:"index"`
-	User   user.User
-	URL    string `gorm:"-"`
+	Title      string `gorm:"type:varchar(255);not null" valid:"title"`
+	Body       string `gorm:"type:longtext;not null" valid:"body"`
+	UserID     int64  `gorm:"index"`
+	User       user.User
+	CategoryID uint64 `gorm:"not null;default:4;index"`
+	URL        string `gorm:"-"`
 }
 
 // 修改 gorm 的默认表名
